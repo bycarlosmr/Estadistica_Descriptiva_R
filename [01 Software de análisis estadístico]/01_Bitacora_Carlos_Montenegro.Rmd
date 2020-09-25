@@ -1,0 +1,641 @@
+---
+title: "Bitacora"
+author: "Carlos Montenegro"
+date: "31/8/2020"
+output:
+  html_document:
+    df_print: paged
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+***
+# Unidad 1: Principios de Data Mining. Visualización y exploración de datos
+
+### Términos
+
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 1/Datos Información Conocimiento.png){width=350}
+
+**Datos:** Son los elementos simples que existen en la naturaleza. Que se comportan como atributos. Sustantivos y Verbos. Modelo Entidad Relación –> Diseños de Bases de Datos.
+
+  * Cualitativos -> Ordenados y No tienen Orden.
+
+  * Cuantitativos -> Número.
+
+**Información:** Es el resultado de la función de los datos y/o información.
+
+  * Indicador el PIB
+      * Capas de información -> entre más capas más abstracto 
+          * Gastos
+          * Costos
+          * Ingresos
+          * Rentabilidad
+
+Rentabilidad = Ingresos – Costos(Activos) – Gastos (Ninguna fuente de generación de dinero)
+
+**Conocimiento:** Patrón dentro las bases de datos.
+
+  * Formas de patrones
+    * Correlación (X e Y)
+    * Clustering (Segmentación)
+    * Asociación
+    * Predicción (Cualitativa)
+    * Predicción (Cuantitativa)
+
+Investigación -> busca pepitas de oro que den Valor.
+
+### Objetivos
+* KDD: Descubrimiento de conocimiento en base de datos.
+* Machine Learning: Maquinas de Aprendizaje (Estadístico)
+* Auto Machine Learning (AutoML)
+
+### Evaluación
+* **Individual:** Bitacora -> Una narración de los talleres que se van realizando. Todas las semanas tenemos un corte.
+* **Grupal:** Evaluaciones o talleres en Grupo (3 a 4 personas)
+* **Investigación:** 3 a 4 personas mínimo proyecto (Retos de Minería) -> formato
+
+### Lenguajes de programación
+* R lenguaje de programación del curso (Base)
+* Python
+* Hadoop arquitectura de Big Data.
+* Map Reduce -> Bash lenguaje de Unix
+* Spark -> Scala
+
+## Ejercicio de entrenamiento
+Se debe ingresar a la siguiente página web:
+https://teachablemachine.withgoogle.com/train
+
+Al ingresar a la página se elige proyecto de imágenes.
+
+Como primer paso se coloca el nombre de la clase que en el primer caso es Teléfono y se capturan imágenes como se muestran en la siguiente captura.
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 1/Captura 1.jpg){width=350}
+
+Segundo paso, se ingresa una nueva clase denominada en el vaso como se muestra en la siguiente captura.
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 1/Captura 2.jpg){width=350}
+
+Tercer paso se prepara el modelo y se observa como con el modelo de Machin Learning aplicado la cámara reconoce los objetos configurados o entrenados.
+
+En la siguiente captura reconoce que es un teléfono.
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 1/Captura 4.jpg){width=150}
+
+Y en el imagen posterior reconoce que es un vaso.
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 1/Captura 3.jpg){width=150}
+
+**Observaciones**
+
+* El modelo debe ser entrenado con varias imágenes si se ingresan más clases para que el reconocimiento sea correcto.
+* El modelo no tiene más de 100 líneas de código generado, el cual puede ser utilizado para predecir o clasificar.
+* Permite exportar en varios lenguajes.
+
+
+### Modelos de Predicción por Varriable de Salida
+* **Cuantitativos:** 
+    * Sueldo es tipo numérico
+    * Tasa de desempleo es tipo numérico
+
+* **Cualitativos:**
+    * Genero es tipo character
+    * Tiene un enfermedad es tipo character
+    * Clima 
+
+### Ejemplo de un modelo
+
+$Y=f(x_1, x_2, x_3, ... x_n)$
+
+$Y$ es variable de salida
+
+$x_i$ son variables de entrada
+
+En R:
+
+$y~x_1+ x_2+ x_3+ ... +x_n$
+
+**Fórmula**
+
+"$y~x_1+ x_2+ x_3+ ... +x_n$"
+
+$Y$ es cuantitativos:
+
+  * Regresión lineal
+  * Redes neuronales
+  * Random forest
+  * Support Vector Machine
+  * Knn
+  
+$Y$ es cualitativo
+
+  * Tree
+  * RandomForest
+  * Redes Neuronales con Maxsoft
+  * Logit
+  
+## Ejercicio práctico en R
+
+### Predicción Cuantitativa
+```{r}
+head(iris)
+```
+
+#### Regresión Lineal
+```{r}
+iris_lm=lm(Sepal.Length~Sepal.Width+Petal.Length+Petal.Width, data=iris)
+iris_pred <- predict(iris_lm, iris)
+
+# Error cuadrático medio
+iris_mse <- sum((iris_pred-iris$Sepal.Length)^2)/length(iris_pred)
+iris_mse
+```
+
+**Comentario:** 
+
+* Se debe conocer el tipo de variable, ya que del tipo de variable se define el tipo de error.
+* Si la variable es cuantitativa el error que se debe utilizar es el error cuadrático medio -> MSE
+
+```{r}
+summary(iris_lm)
+```
+
+**Tipo de Error**
+
+* Cuantitativos
+    * MSE
+    * $R^2$
+    * p-values < 5%
+
+## Predicción Cualitativa
+```{r}
+library(rpart)
+iris_rpart=rpart(Species~Sepal.Length+Sepal.Width+Petal.Length+Petal.Width, dat=iris)   
+iris_pred_rpart=predict(iris_rpart, iris)
+head(iris_pred_rpart)
+```
+
+**Tipo de Error Variable cualitativa**
+
+* Cualitativo
+  * Accurancy (predict==real)/elementos
+  * p-values=1-accurancy
+
+#### RandomForest
+```{r}
+library(randomForest)
+iris_rf=randomForest(Species~Sepal.Length+Sepal.Width+Petal.Length+Petal.Width, dat=iris)   
+iris_pred_rf=predict(iris_rf, iris)
+head(iris_pred_rf)
+```
+
+#### Ctree
+```{r}
+library(party)
+iris_ctree=ctree(Species~Sepal.Length+Sepal.Width+Petal.Length+Petal.Width, dat=iris)   
+iris_pred_ctree=predict(iris_ctree, iris)
+head(iris_pred_ctree)
+plot(iris_ctree, type="simple")
+plot(iris_ctree)
+```
+
+```{r}
+head(iris$Species==iris_pred_ctree)
+```
+
+```{r}
+acu=sum(iris$Species==iris_pred_ctree)/length(iris_pred_ctree)
+acu
+p_value=1-acu
+p_value
+```
+
+
+```{r}
+plot(iris_ctree, type="simple")
+```
+
+```{r}
+iris_ctree2=ctree(Species~Petal.Length+Petal.Width, dat=iris)   
+iris_pred_ctree2=predict(iris_ctree2, iris)
+head(iris_pred_ctree2)
+plot(iris_ctree2, type="simple")
+```
+
+**Comentario:**
+
+  * Los modelos deben buscar relación entre variables.  
+  * Esquema de predicción -> como es el árbol simple.
+
+
+## 1.1	Data Frame 
+
+Los data frames son estructuras de datos de dos dimensiones (rectangulares) que pueden contener datos de diferentes tipos, por lo tanto, son heterogéneas. Esta estructura de datos es la más usada para realizar análisis de datos.
+
+### 1.1.1	Vector, Matriz y Data Frame.
+
+**Vector:** colección ordenada de elementos del mismo tipo.
+```{r}
+# Ejemplo
+x <- c(1, 2, 3); y <- c("a", "b", "c")
+z <- c(TRUE, TRUE, FALSE)
+```
+
+**Matriz y array:** Las matrices y arrays pueden ser descritas como vectores multidimensionales. Al igual que un vector, únicamente pueden contener datos de un sólo tipo, pero además de largo, tienen más dimensiones.
+
+En un sentido estricto, las matrices son una caso especial de un array, que se distingue por tener específicamente dos dimensiones, un “largo”" y un “alto”. Las matrices son, por lo tanto, una estructura con forma rectangular, con renglones y columnas.
+
+**Data frame:** Un data frame es una tabla de doble entrada, formada por variables en las columnas y observaciones de estas variables en las filas, de manera que cada fila contiene los valores de las variables para un mismo caso o un mismo individuo.
+
+* `data():` para abrir una ventana con la lista de los objetos de datos a los que tenemos acceso en la sesión actual de R (los que lleva la instalación básica de R y los que aportan los paquetes que tengamos cargados.
+
+* Si entramos `data(package=.packages(all.available = TRUE))` obtendremos la lista de todos los objetos de datos a los que tenemos acceso, incluyendo a los paquetes que tengamos instalados, pero que no estén cargados en la sesión actual.
+
+
+### 1.1.2	Tidy Data
+
+Tidy data o datos ordenados son una forma estándar de mapear el significado de un conjunto de datos a su estructura. Un conjunto de datos es desordenado u ordenado dependiendo de cómo las filas, columnas y tablas se emparejan con las observaciones, las variables y los tipos. En los datos ordenados:
+
+  1.	Cada variable forma una columna.
+  2.	Cada observación forma una fila.
+  3.	Cada tipo de unidad de observación forma una tabla.
+
+#### Ejemplo
+
+**Data desordenada**
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 1/Tidy data.jpg){width=550}
+
+Este conjunto  de  datos tiene tres variables, religión,  ingresos y frecuencia. Para ordenarlo, necesitamos fundirlo o apilarlo. En otras palabras, necesitamos convertir las columnas en filas. El derretimiento se parametriza con una lista de columnas que ya son variables, o `colvar` s para  abreviar.  Las otras columnas se convierten en dos variables: una nueva variable llamada columna que contiene repetidos encabezados de columna y una nueva variable llamada valor que contiene los valores de datos concatenados de las columnas previamente separadas. El resultado de la fusión es un conjunto de datos fundidos.
+ 
+**Data ordenada**
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 1/Tidy data 2.jpg){width=350}
+
+El conjunto de datos de Pew tiene un colvar, la religión. Para reflejar mejor sus papeles en este conjunto de datos, la columna de  variables ha  sido renombrada a ingresos, y la columna de valores a freq. Esta forma está ordenada porque cada columna representa una variable y cada fila una observación, en este caso una unidad demográfica que corresponde a una combinación de religión e ingresos.
+
+
+**Observación importante**
+
+* Data frame -> Tidy Data
+* Iris es un Taidy Data
+
+Species, Sepal.Length, Sepal.Width, Petal.Length, Petal.Width
+
+### 1.1.3	Modelo: variables independientes y dependientes
+
+Variables de entrada
+
+* Cuantitativos
+  * Aceptada en cualquier tipo de modelo
+
+
+* Cualitativos
+  * Es necesario convertir -> variable dummies
+  * _One Hot-Encoding:_ Es una codificación en caliente es un proceso mediante el cual las variables categóricas se convierten en una forma que podría proporcionarse a los algoritmos de ML para hacer un mejor trabajo en la predicción.
+  
+
+**Modelos**
+
+* Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width + Species
+
+* Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width + Species_setosa + Species_virginica + Species_versicolor
+
+**Donde:**
+
+ * Species_setosa = {0, 1}
+ * Species_virginica = {0, 1}
+ * Species_versicolor = {0, 1}
+
+**Regresión Lineal:** Donde Species es tratado como un factor.
+```{r}
+i_lm=lm(Sepal.Length~Sepal.Width+Petal.Length+Petal.Width+ as.factor(Species), data= iris) 
+summary(i_lm)
+```
+
+Construcción de la matriz `mm`, donde se crean varaibles dummy para la varaible Species, para su posterior fusión en un data frame.
+```{r}
+mm=model.matrix(~iris$Species+0)
+head(mm)
+```
+
+Construcción del data frame.
+```{r}
+iris_mm <- data.frame(iris[,1:4], mm)
+head(iris_mm)
+```
+
+**Modelo randomForest:** Donde se han creado variables dummy para las clases de la variable Species. 
+```{r}
+iris_rf=randomForest(Sepal.Length~Sepal.Width+Petal.Length+Petal.Width+ iris.Speciessetosa+iris.Speciesversicolor+iris.Speciesvirginica, data= iris_mm ) 
+summary(iris_rf)
+```
+
+**Regresión Lineal:** Donde se realiza la regresión lineal con varaibles dummy para la variable Species.
+```{r}
+i_lm2=lm(Sepal.Length~Sepal.Width+Petal.Length+Petal.Width+ iris.Speciessetosa+iris.Speciesversicolor+iris.Speciesvirginica, data= iris_mm) 
+summary(i_lm2)
+```
+
+**Tipos de modelos por lo que devuelven:**
+
+* Estadística descriptiva
+* Modelos de Predicción (Regresión y clasificación)
+* Modelos de prescripción (How, cómo, proceso)
+
+**Metodología de investigación**
+
+* $Y~x_1+x_2+x_3+x_4+...+x_n$
+* Y: Variables Dependinte
+* $x_i:$ Variables independientes
+
+**Tipos de entrenamiento**
+
+
+**Ejercicio práctico**
+
+```{r}
+#Datos
+n=dim(iris)[1]
+porcentajedetrain=0.7
+i_train=sample(1:n,porcentajedetrain*n)
+iris_train=iris[i_train,]
+iris_test=iris[-i_train,]
+
+```
+
+**Modelo de entrenamiento**
+```{r}
+library(party)
+iris_ctree=ctree(Species~Sepal.Length+Sepal.Width+Petal.Length+Petal.Width,data=iris_train)
+iris_ctree
+```
+
+**Precisión del modelo**
+```{r}
+predict_train = predict(iris_ctree, iris_train)
+head(predict_train)
+
+acurracy_train = sum(predict_train==iris_train$Species)/dim(iris_train)[1]
+acurracy_train
+```
+
+**Acurrancy test**
+```{r}
+predict_test = predict(iris_ctree, iris_test)
+head(predict_test)
+
+acurracy_test = sum(predict_test==iris_test$Species)/dim(iris_test)[1]
+acurracy_test
+```
+
+
+### 1.1.4	p-values:
+El $p$-valor o valor crítico ($p$-value) de un contraste es la probabilidad que, si $H_0$ es verdadera, el estadístico de contraste tome un valor tan extremo o más que el que se ha observado.
+
+Consideremos por ejemplo un contraste del tipo:
+
+* $H_0: u = u_0$
+* $H_1: u > u_0$
+
+Si el estadístico $Z$ tiene el valor $z_0$, el $p$-valor será:
+$p-valor = P(Z>=z_0)$
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 1/p-valor.jpg){width=350}
+
+### 1.1.5	Glosario de términos
+
+  * **1.1.5.1	Data Science:** Data Science es la ciencia centrada en el estudio        de los datos. Se encarga de extraer información de grandes cantidades de           datos. Data Science combina la estadística, las matemáticas y la                   informática para interpretar datos. El objetivo es tomar decisiones.
+
+  * **1.1.5.2	Machine Learning:** Machine Learning es una disciplina científica del ámbito de la Inteligencia Artificial que crea sistemas que aprenden automáticamente. Aprender en este contexto quiere decir identificar patrones complejos en millones de datos. La máquina que realmente aprende es un algoritmo que revisa los datos y es capaz de predecir comportamientos futuros. Automáticamente, también en este contexto, implica que estos sistemas se mejoran de forma autónoma con el tiempo, sin intervención humana. 
+
+  * **1.1.5.3	Deep Learning:** El deep learning es un tipo de machine learning que entrena a una computadora para que realice tareas como las hacemos los seres humanos, como el reconocimiento del habla, la identificación de imágenes o hacer predicciones. En lugar de organizar datos para que se ejecuten a través de ecuaciones predefinidas, el deep learning configura parámetros básicos acerca de los datos y entrena a la computadora para que aprenda por cuenta propia reconociendo patrones mediante el uso de muchas capas de procesamiento.
+
+  * **1.1.5.4	Inteligencia Artificial:**  (IA) es la combinación de algoritmos planteados con el propósito de crear máquinas que presenten las mismas capacidades que el ser humano. 
+
+  * **1.1.5.5	Big Data:** Es un término que describe el gran volumen de datos, tanto estructurados como no estructurados, que inunda una empresa en el día a día. Pero no es la cantidad de datos lo que importa. Lo que importa es lo que hacen las organizaciones con los datos. Los macrodatos se pueden analizar para obtener información que conduzca a mejores decisiones y movimientos comerciales estratégicos. 
+  
+      * DATA > RAM
+  
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 1/Big Data.jpg){width=350}
+
+* **Tipos de DATA**
+  * **Data Rare:** Tiene muchos ceros  (One Hot-Encoding)
+  * **Data Density:** Tiene datos distribuidos
+  
+## 1.2	Calidad de Datos
+
+### 1.2.1	Detección de Outlier
+La detección de valores atípicos univariados se realiza con la función `boxplot.stats ()`, que devuelve las estadísticas para producir diagramas de caja. En el resultado devuelto por la función anterior, un componente está fuera, lo que da una lista de valores atípicos. Más específicamente, enumera los puntos de datos que se encuentran más allá de los extremos de los bigotes. Se puede usar un argumento de `coef` para controlar qué tan lejos se extienden los bigotes desde la caja de una gráfica de caja. En el siguiente gráfico se muestra un diagrama de caja, donde los cuatro círculos son valores atípicos.
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 1/Box Plot.jpg){width=350}
+
+**Ejemplo de código en R**
+
+`boxplot.stats (pc$radius)`
+
+`boxplot(pc$radius)`
+
+`boxplot.stats (pc$texture)`
+
+`boxplot(pc$texture)`
+
+`boxplot.stats (pc$perimeter)`
+
+`boxplot(pc$perimeter)`
+
+`out_perimeter = which(pc$perimeter %in% boxplot.stats(pc$perimeter)$out)`
+
+`out_perimeter`
+
+### 1.2.2	Discretización de variables
+Discretizar datos quiere decir convertir variables que son continuas en variables agrupadas por intervalos. Por ejemplo, podemos discretizar un listado que contiene la edad de ciertas personas, que de forma continua podrían tener un valor entre 0 y 90, en variables discretas de (por ejemplo) 5 intervalos de diferentes edades: infantes, niños, jóvenes, adultos y ancianos.
+
+La discretización de variables es muy útil en aprendizaje supervisado. El científico de datos puede decidir qué variables conviene que sean discretizadas antes de aplicar los modelos y cuales pueden funcionar mejor de forma continua. En mi opinión, aquellas variables que puedan ser descritas, desde el punto de vista del algoritmo, en forma de intervalos son buenas candidatas a la discretización. Es decir, que aquello que nos convenga describir en grupos (tales como bajo, medio y alto) podrían ser discretizadas.
+
+Para discretizar se debe utiliar dos funciones:
+
+1 `as.factor` si la varaible contine un nivel de intensidad o magnitud.
+2 `dummy_cols` de la libreria `fastDummies` para crear varaibles categóricas para cada una de las clases.
+
+**Ejemplo**
+
+`library(fastDummies)`
+
+`uu = data.frame(pc$diagnosis_result)`
+
+`dm = dummy_cols(uu)[,-1]`
+
+`pc2 = data.frame(pc[,1:10], dm)`
+
+`pcf = pc2[,-2]`
+
+### 1.2.3	Imputación de valores NaN o null
+En `R`, la imputación de datos categóricos se realiza directamente con paquetes como `DMwR`, `Caret` y también tengo opciones de algoritmos como `KNN` o `CentralImputation`.
+
+**Otro ejemplo**
+Con `is.na()` detecta la presencia de NaN o null y con el comando `sum()` cuantifica los datos faltantes.
+
+`sum(is.na(base))`
+
+`sum(complete.cases(base))`
+
+#### 1.2.4	Tratamiento de datos
+Una de las formas es realizar el análisis sin considerar los valores faltantes, este método se lo conoce como "visión práctica del problema", pero al realizar este análisis se corre el riesgo de tener un sesgo por no considerar el dato faltante. Sin embargo, existen otras formas como las siguientes:
+
+1 Pairwise Deletion
+2 Imputación de la media
+3 Imputación mediante regresión
+4 Imputación mediante regresión estocástica
+5 Imputación mediante LOCF y BOFC
+6 Imputación múltiple
+
+
+## 1.3	Metodología KDD - Conocimiento en Base de Datos 
+Es un proceso metodológico para encontrar un “modelo” válido, útil y entendible que describa patrones de acuerdo a la información, y como modelo entendemos que es la representación que intenta explicar ese patrón en los datos.
+
+### 1.3.1	Selection
+Previamente se debe considerar la **abstracción del escenario**, donde, ss importante conocer las propiedades, limitaciones y reglas del escenario en estudio, para posteriormente definir las metas a alcanzar.
+
+La **selección de los datos** del conjunto de datos recolectados y ya definidos los objetivos por alcanzar, se deben elegir datos disponibles para realizar el estudio e integrarlos en uno solo que puedan favorecer a llegar a alcanzar a los objetivos del análisis.
+
+### 1.3.2	Preprocesing
+Se determina la confiabilidad de la información, es decir, realizar tareas que garanticen la utilidad de los datos. Para esto se hace la limpieza de datos (tratamiento de datos perdidos o remover valores atípicos). Esto implica eliminar variables o atributos con datos faltantes o eliminar información no útil para este tipo de tareas como el texto (aunque puede utilizarse para hacer Minería de Texto, que es otro asunto).
+
+### 1.3.3	Transformation
+Se mejora la calidad de los datos con transformaciones que involucran ya sea reducción de dimensionalidad (disminuir la cantidad de variables del conjunto de datos) o bien transformaciones como por ejemplo convertir los valores que son números a categóricos (discretización).
+
+### 1.3.4	Data Mining
+Elegir el paradigma apropiado de Minería de Datos, ya sea la clasificación, regresión o agrupación, según los objetivos que se haya planteado para la investigación (predicción o descripción), la primera ocupada para encontrar un modelo que sea utilizada para casos futuros y desconocidos; mientras que la segunda solo para observar su comportamiento.
+
+**Elección del algoritmo de Minería de Datos** Posteriormente se procede a seleccionar la técnica o algoritmo, o incluso más de uno para la búsqueda del patrón y obtener conocimiento. El meta-aprendizaje se enfoca en explicar la razón por la que un algoritmo funciona mejor en determinadas problemáticas, y para cada técnica existen diferentes posibilidades de cómo seleccionarlas.
+
+**Aplicación del algoritmo** Aplicar a los datos ya seleccionados, limpiados y procesados. Es posible que la ejecución de los algoritmos sean varias intentando ajustar los parámetros que optimicen los resultados. Estos parámetros varían de acuerdo al método seleccionado.
+
+
+### 1.3.5	Interpretation / Evaluation
+Evaluar los patrones que se generaron y el rendimiento que se obtuvo para verificar que cumpla con las metas planteadas en las primeras fases. Para realizar esta evaluación existe una técnica que se llama Validación Cruzada, el cual realiza una partición de los datos dividiéndose en entrenamiento (que servirán para crear el modelo) y prueba (que serán utilizados para ver que en verdad funciona el algoritmo y realiza su trabajo bien).
+
+
+## 1.4	Arboles de Decisión
+
+```{r}
+library(randomForest)
+library(caret)
+n=dim(iris)[1]
+porcentajedetrain=0.75
+i_train=sample(1:n,porcentajedetrain*n)
+iris_train=iris[i_train,]
+iris_test=iris[-i_train,]
+
+iris_rf=randomForest(Species~Sepal.Length+Sepal.Width+Petal.Length+Petal.Width,data=iris_train) 
+iris_rf
+
+predict_train = predict(iris_rf, iris_train)
+head(predict_train)
+
+acurracy_train = sum(predict_train==iris_train$Species)/dim(iris_train)[1]
+acurracy_train
+
+
+predict_test = predict(iris_rf, iris_test)
+head(predict_test)
+
+acurracy_test = sum(predict_test==iris_test$Species)/dim(iris_test)[1]
+acurracy_test
+
+confusionMatrix(predict(iris_rf, iris_test), iris_test$Species)
+```
+
+* 1.4.1	Modelo usando variable dependiente cualitativa
+* 1.4.2	Visualización del árbol de decisión
+* 1.4.3	Aplicación de Modelos no supervisado
+* 1.4.4	Aplicación de Modelos Supervisado
+* 1.4.5	Interpretación
+* 1.4.6	Explicación de disminución de variables
+* 1.4.7	Medición del error del modelo
+* 1.4.8	Predicción del modelo con datos diferentes
+
+
+
+## 1.5	Modelos de Regresión Lineal
+
+```{r}
+n=dim(iris)[1]
+porcentajedetrain=0.75
+i_train=sample(1:n,porcentajedetrain*n)
+iris_train=iris[i_train,]
+iris_test=iris[-i_train,]
+
+iris_lm = lm(Sepal.Length~Sepal.Width+Petal.Length+Petal.Width, data=iris_train)
+iris_lm
+
+predict_train = predict(iris_lm, iris_train)
+head(predict_train)
+mse_train = sum((predict_train-iris_train$Sepal.Length)^2)/length(predict_train)
+mse_train
+
+
+predict_test = predict(iris_lm, iris_test)
+head(predict_test)
+mse_test = sum((predict_test-iris_test$Sepal.Length)^2)/length(predict_test)
+mse_test
+```
+
+
+**Metadatos:**
+Diseño de bases de datos se describen a las columnas como metadatos.
+
+* Meta datos de iris(Species, Sepal.Length, Sepal.Wildth, Pedal.Length, Pedal.Width)
+* Exif este es para imágenes
+
+**Data Cleaning**
+
+* Un indicador
+* Tiempo (Date), indicador (numeric)
+
+$indicador_{t+1}~indicador_t$
+
+* N.        N-1
+* :         :  
+* :         :
+* 2         1
+
+
+* $indicador_{t+1}=df[-1, 2]$
+* $indicador_t=df[-N, 2]$
+
+Autoregresivo
+
+**Ejercicio práctico**
+
+```{r}
+# Importar datos
+library(readxl)
+GDP_Ecuador <- read_excel("D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/GDP Ecuador.xlsx")
+
+
+N=length(GDP_Ecuador)
+
+GDP=GDP_Ecuador[-1,]$GDP
+GDP_1=GDP_Ecuador[-N,]$GDP
+Ninio_1=GDP_Ecuador[-N,]$Ninio
+Dolar_1=GDP_Ecuador[-N,]$Dolar
+Electoral_1=GDP_Ecuador[-N,]$Electoral
+
+df=data.frame(GDP,GDP_1,Ninio_1,Dolar_1,Electoral_1)
+
+GDP_lm=lm(GDP~GDP_1+Ninio_1+Dolar_1+Electoral_1, data=df)
+GDP_lm
+summary(GDP_lm)
+```
+
+* 1.5.1	Modelo usando variable dependiente cuantitativa
+* 1.5.2	Codificación de variables dependientes  que son cualitativas: One-Hot Encoding
+* 1.5.3	Regularización de variables 
+* 1.5.4	Interpretación
+* 1.5.5	Aplicación de Modelos no supervisado
+* 1.5.6	Aplicación de Modelos Supervisado
+* 1.5.7	Medición del error del modelo
