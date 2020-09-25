@@ -1,0 +1,721 @@
+---
+title: "03_Bitacora_Carlos_Montenegro"
+author: "Carlos Montenegro"
+date: "12/9/2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+***
+# Unidad 3: Aprendizaje no supervisado. Asociación y análisis cluster
+
+## Redes neuronales - Inteligencia Artificial
+Las redes neuronales artificiales son un modelo inspirado en el funcionamiento del cerebro humano. Esta formado por un conjunto de **nodos** conocidos como **neuronas artificiales** que están conectadas y transmiten señales entre sí. Estas señales se transmiten desde la entrada hasta generar una salida.
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/RN-Bio.jpg){width=350}
+
+* La mente del cerebro trabaja de manera bayesiana
+* El hardware trabaja en una red de neuronas
+
+#### Perceptrón
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/Perceptron.jpg){width=350}
+
+* El perceptrón no funciona con ecuaciones no lineales.
+
+#### Solución al problema de las redes neuronales
+
+**Gradient Descending**
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/Gradiente.jpg){width=350}
+
+Teóricamente era aplicable ya que se contaba con la solución matemática para la unión de redes neuronales, sin embargo tenía un problema, ya que computacionalmentes no era aplicable a la fecha de su desarrollo. 
+
+* Este modelo es de forma escalonada.
+
+**Elementos**
+
+* Variables - entrada
+* Capas ocultas
+  * Neuronas
+* Respuesta - salida
+
+## Ejercicio práctico
+
+Ingresar a la siguiente página donde se puede entrenar una Red Neuronal: Playground de Tensorflow: https://playground.tensorflow.org/
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/PGTF.jpg){width=350}
+
+Como se ve converge en una sola variable de salida. A continuación se realizará configuraciones para observar si la convergencia está acorde con los datos.
+
+1 Se corre sin realizar cambios
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/Ejer1.jpg){width=350}
+
+  * **Comentario:** Con las variables planteadas se observa que reconoce los puntos y su agrupación.
+  
+2 Se cambia los datos 
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/Ejer2.jpg){width=350}
+
+  * **Comentario:** Se observa que sin ningún cambio la salida no corresponde al patrón de los datos.
+  
+3 Se incluyen variables y capas para mejorar el reconocimiento para esto se incluye:
+
+* 7 variables. 
+* Capa 1 con 7 neuronas
+* Capa 2 con 5 neuronas
+* Capa 3 con 5 neuronas
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/Ejer3.jpg){width=350}
+
+* **Comentario:** Se observa que la red neuronal converge de mejor manera a la distribución de los datos.
+
+
+## Regresion con Red Neuronal
+El siguiente script utiliza el package neuralnet para hacer una regresión y predecir el valor de viviendas (expresado en \$1000), usando el data set Boston incluido en el package MASS.
+
+Para un mejor ajuste del modelo (es decir, para que la red aprenda mejor), se hace un preprocesamiento de los datos, donde se normaliza el data set.
+
+```{r}
+# LIBRERIAS Y DATOS
+# -----------------------------------------------------
+library(MASS); library(neuralnet); library(ggplot2)
+set.seed(65)
+datos    <- Boston
+n        <- nrow(datos)
+muestra  <- sample(n, n * .70)
+train    <- datos[muestra, ]
+test     <- datos[-muestra, ]
+ 
+# NORMALIZACION DE VARIABLES
+# -----------------------------------------------------
+maxs      <- apply(train, 2, max)
+mins      <- apply(train, 2, min)
+datos_nrm <- as.data.frame(scale(datos, center = mins, scale = maxs - mins))
+train_nrm <- datos_nrm[muestra, ]
+test_nrm  <- datos_nrm[-muestra, ]
+ 
+# FORMULA
+# -----------------------------------------------------
+nms  <- names(train_nrm)
+frml <- as.formula(paste("medv ~", paste(nms[!nms %in% "medv"], collapse = " + ")))
+ 
+# MODELO
+# -----------------------------------------------------
+modelo.nn <- neuralnet(frml,
+                       data          = train_nrm,
+                       hidden        = c(7,5), # ver Notas para detalle 
+                       threshold     = 0.05,   # ver Notas para detalle
+                       algorithm     = "rprop+" 
+                       )
+ 
+# PREDICCION
+# -----------------------------------------------------
+pr.nn   <- compute(modelo.nn,within(test_nrm,rm(medv)))
+ 
+# se transoforma el valor escalar al valor nominal original
+medv.predict <- pr.nn$net.result*(max(datos$medv)-min(datos$medv))+min(datos$medv)
+medv.real    <- (test_nrm$medv)*(max(datos$medv)-min(datos$medv))+min(datos$medv)
+ 
+# SUMA DE ERROR CUADRATICO
+# -----------------------------------------------------
+(se.nn <- sum((medv.real - medv.predict)^2)/nrow(test_nrm)) # Es el error cuadrático.
+```
+
+```{r}
+#GRAFICOS
+# -----------------------------------------------------
+# Errores
+qplot(x=medv.real, y=medv.predict, geom=c("point","smooth"), method="lm", 
+      main=paste("Real Vs Prediccion. Summa de Error Cuadratico=", round(se.nn,2)))
+```
+
+```{r}
+# Red
+plot(modelo.nn)
+```
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/Graf_Neuronal.jpg){width=350}
+
+
+
+## Observación
+```{r}
+# modelo.nn <- neuralnet(frml, data = train_nrm, 
+#         hidden = c(7,7,1), # En esta linea se definen las capas y las neuronas 
+#         threshold = 0.05,   # ver Notas para detalle
+#         algorithm = "rprop+" 
+#                        )
+```
+
+Al ajustar el modelo (7,7,1)  a que la última capa oculta sea una neurona hace que el modelo se suavise. Lo que hace es dar un valor previo al resultado 
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/Graf_Neuronal2.jpg){width=350}
+
+## Subir y bajar un modelo
+
+```{r}
+# Grabar un modelo lo envio a disco
+saveRDS(modelo.nn, "Model_bycarlosmr")
+
+# Cargar un modelo en R
+modelo_up = readRDS("Model_bycarlosmr")
+```
+
+
+## Correr el modelo
+
+```{r}
+# PREDICCION
+# -----------------------------------------------------
+pr.nn_up <- compute(modelo_up,within(test_nrm,rm(medv)))
+
+# se transoforma el valor escalar al valor nominal original
+medv.predict <- pr.nn_up$net.result*(max(datos$medv)-min(datos$medv))+min(datos$medv)
+medv.real <- (test_nrm$medv)*(max(datos$medv)-min(datos$medv))+min(datos$medv)
+
+
+# SUMA DE ERROR CUADRATICO
+# -----------------------------------------------------
+(se.nn <- sum((medv.real - medv.predict)^2)/nrow(test_nrm))
+se.nn
+```
+
+# Sofmax encoder
+Sirve para hacer una clasificación múltiple dentro de una red neuronal.
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/Sof.jpg){width=350}
+
+### Código
+
+**Nota:** Es Duumy para entrada pero es Softmax para salida.
+
+```{r}
+#softmax encoder
+mm=model.matrix(~iris$Species+0) # Specie se convierte en Dummy
+iris_data_nn=data.frame(iris[,1:4],mm)
+
+id_train_iris = sample(1:150, 0.7*150)
+
+train_iris=iris_data_nn[id_train_iris,] #datos de entrenamiento
+test_iris=iris_data_nn[-id_train_iris,] #datos de evaluacion
+
+irisnn=neuralnet(iris.Speciessetosa+iris.Speciesversicolor+iris.Speciesvirginica~.,
+data=train_iris, hidden = c(20,20,20,10))
+pr=compute(irisnn, test_iris)
+
+#al reves
+Species_nn=c()
+for(i in 1:dim(test_iris)[1]){
+if (as.integer(pr$net.result[i,1]+0.5)==1){
+Species_nn=rbind(Species_nn,c("setosa"))
+}
+if (as.integer(pr$net.result[i,2]+0.5)==1){
+Species_nn=rbind(Species_nn,c("versicolor"))
+}
+if (as.integer(pr$net.result[i,3]+0.5)==1){
+Species_nn=rbind(Species_nn,c("virginica"))
+}
+}
+
+head(Species_nn) #resultado de la prediccion
+
+test_error_nn=1-sum(Species_nn==iris[-id_train_iris,]$Species)/dim(Species_nn)[1]
+test_error_nn
+```
+
+```{r}
+plot(irisnn)
+```
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/Graf_Neuronal3.jpg){width=350}
+
+
+# Tensorflow
+
+## Código
+En esta sección se cita el código. Sin embargo, en la máquina que se dispone la sintax no corre.
+
+```{r}
+# install.packages("tensorflow")
+# library(tensorflow) 
+# install_tensorflow()
+
+#Valide la instalación
+# tf$constant("Hellow Tensorflow")
+
+###############################################################################
+# Otra alternativa
+# instalar 
+# install.packages("tensorflow")
+# library(tensorflow)
+# install_tensorflow()
+# install_tensorflow(method = "conda", conda = "auto",
+#                    version = "1.5.0", envname = "r-tensorflow")
+# 
+# # Valide la instalación
+# tf$constant("Hellow Tensorflow")
+# 
+# install.packages("reticulate")
+# library(reticulate)
+# 
+# install.packages("keras")
+# library(keras)
+```
+
+
+## Ejereccio de GDP
+```{r}
+library(readxl)
+GDPbase <- read_excel("D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/GDP Ecuador.xlsx")
+
+GDP_Ecuador=as.data.frame(GDPbase)
+N=length(GDP_Ecuador)[1]
+#columna a predecir
+GDP=GDP_Ecuador[-c(1),]$GDP
+#columna variables independientes en t-1 GDP_1=GDP_Ecuador[-c(N),]$GDP
+GDP_1=GDP_Ecuador[-c(N),]$GDP
+Ninio_1=GDP_Ecuador[-c(N),]$Ninio
+Dolar_1=GDP_Ecuador[-c(N),]$Dolar
+Electoral_1=GDP_Ecuador[-c(N),]$Electoral
+df=data.frame(GDP,GDP_1,Ninio_1,Dolar_1,Electoral_1)
+GDP_lm=lm(GDP~GDP_1+Ninio_1+Dolar_1+Electoral_1, data=df)
+summary(GDP_lm)
+```
+
+### Se incluyen más varibles al modelo
+```{r}
+## Añadir otras variables
+GDP_lm1=lm(GDP~GDP_1+Ninio_1+Dolar_1+Electoral_1+0, data=df)
+summary(GDP_lm1)
+```
+
+### Variantes de los modelos
+```{r}
+## Contar el número de variables
+GDP_lm2=lm(GDP~GDP_1*Ninio_1, data=df)
+summary(GDP_lm2)
+GDP_lm3=lm(GDP~GDP_1*Ninio_1*Dolar_1, data=df)
+summary(GDP_lm3)
+```
+
+### Construcción de modelos no lineales
+```{r}
+## Polinomio de grado 4
+GDP_lm4=lm(GDP~poly(GDP_1,4,raw=TRUE), data=df)
+summary(GDP_lm4)
+
+GDP_lm6=lm(GDP~GDP_1*Ninio_1*Dolar_1*Electoral_1, data=df)
+summary(GDP_lm6)
+step(GDP_lm6)
+```
+
+### Comando Step
+Sirve para realizar una reducción del modelo
+```{r}
+## Step
+GDP_lm5=lm(GDP~poly(GDP_1,4,raw=TRUE)*poly(Ninio_1,4,raw=TRUE), data=df)
+summary(GDP_lm5)
+step(GDP_lm3)
+GDP_lm6=lm(GDP~GDP_1*Ninio_1*Dolar_1*Electoral_1, data=df)
+summary(GDP_lm6)
+step(GDP_lm6)
+
+GDP_lm7=lm(log(GDP)~log(GDP_1)+sqrt(GDP_1), data=df)
+summary(GDP_lm7)
+GDP_lm7
+
+GDP_lm7=lm(log(GDP)~(log(GDP_1)+sqrt(GDP_1))*Ninio_1*Dolar_1*Electoral_1, data=df)
+summary(GDP_lm7)
+a=step(GDP_lm7)
+summary(GDP_lm7)
+
+GDP_lm7=lm(log(GDP)~(log(GDP_1)+sqrt(GDP_1))*Ninio_1*Dolar_1*Electoral_1, data=df)
+summary(GDP_lm7)
+a=step(GDP_lm7)
+summary(a)
+```
+
+
+**Comentario:**
+
+* Al sumar o restar el cero se elimina la constante del modelo `GDP_lm=lm(GDP~GDP_1+Ninio_1+Dolar_1+Electoral_1+0, data=df)`
+
+
+## Modelo no lineal con randomForest
+```{r}
+library(randomForest)
+iris_rf=randomForest(Species~Sepal.Length*Sepal.Width*Petal.Length*Petal.Width, data=iris)
+predict_nolineal=predict(iris_rf, iris)
+iris_rf=randomForest(Species~Sepal.Length+Sepal.Width+Petal.Length+Petal.Width, data=iris)
+predict_lineal=predict(iris_rf, iris)
+sum(predict_nolineal==iris$Species)/150
+sum(predict_lineal==iris$Species)/150
+```
+
+
+## Modelo no lineal con Suport Vector Machine
+```{r}
+library(e1071)
+iris_svm=svm(Species~Sepal.Length*Sepal.Width*Petal.Length*Petal.Width, data=iris)
+predict_nolineal=predict(iris_svm, iris)
+iris_svm=svm(Species~Sepal.Length+Sepal.Width+Petal.Length+Petal.Width, data=iris)
+predict_lineal=predict(iris_svm, iris)
+sum(predict_nolineal==iris$Species)/150
+sum(predict_lineal==iris$Species)/150
+```
+
+**Comentario:**
+Se observa que el predictor no lineal es de 0.95 y es menor la predictor lineal de 0.97.
+
+
+Se puede utilizar L1 y L2 para evitar el overfiting. Lo que es conocido como regresión regularizada.
+
+**Análisis  previos antes de una regresión lineal**
+
+* Relación lineal entre las variables
+* Normalidad multivariada
+* No autocorrelación
+* Homocedasticidad (Varianza constante del error)
+* Hay más observaciones que variables (n > p)
+* No multicolinealidad
+
+
+**Regresión regularizada**
+
+* Fórmula donde se minimiza los errores mínimos cuadráticos -> min{RSS+p}
+* Donde p es un valor de castigo. 
+
+**L1: Lasso**
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/L1.jpg){width=350}
+
+**Comentario:**
+
+Con este método se controla la proporción ente el error cuadrático medio y el número de variables. De esta forma si la sumatoria de los betas es mayor al error se puede determinar que esta afectan al modelo. 
+
+**L2: Lasso**
+
+![](D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Bitacora/Capturas 3/L2.jpg){width=350}
+
+**Comentario:**
+
+Este método es similar al anterior simplemente a los betas se les eleva al cuadrado y con esto se puede observar la proporción a considerar en el modelo. 
+
+
+## Automatic Machin Learning 
+
+### Package automl
+
+#### Primer ejercicio
+
+```{r}
+library(automl)
+mm=model.matrix(~iris$Species+0)
+#xmat =cbind(iris[,2:4], as.numeric(iris$Species))
+xmat=data.frame(iris[,2:4],mm)
+ymat =iris[,1]
+amlmodel =automl_train(Xref = xmat, Yref = ymat)
+predict= automl_predict(amlmodel, xmat)
+predict
+summary(amlmodel)
+```
+
+
+
+Se realiza un ejercicio dada un pdf de la función: 
+[Automl
+(https://cran.r-project.org/web/packages/automl/automl.pdf)  
+Documento donde se profundiza sobre Machine Learning y el 
+[Auto Machine Learning]
+(https://www.kdnuggets.com/2020/05/automated-machine-learning-free-ebook.html)    
+
+
+```{r}
+library(automl)
+data(iris)
+xmat = iris[,1:4]
+lab2pred <- levels(iris$Species)
+lghlab <- length(lab2pred)
+iris$Species <- as.numeric(iris$Species)
+ymat <- matrix(seq(from = 1, to = lghlab, by = 1), nrow(xmat), lghlab, byrow = TRUE)
+ymat <- (ymat == as.numeric(iris$Species)) + 0
+#with gradient descent and 2 hidden layers
+amlmodel <- automl_train_manual(Xref = xmat, Yref = ymat,
+hpar = list(layersshape = c(10, 10, 0),
+layersacttype = c('tanh', 'relu', 'sigmoid'),
+layersdropoprob = c(0, 0, 0)))
+#with gradient descent and no hidden layer (logistic regression)
+amlmodel <- automl_train_manual(Xref = xmat, Yref = ymat,
+hpar = list(layersshape = c(0),
+layersacttype = c('sigmoid'),
+layersdropoprob = c(0)))
+#with PSO and softmax
+amlmodel <- automl_train_manual(Xref = xmat, Yref = ymat,
+hpar = list(modexec = 'trainwpso',
+layersshape = c(10, 0),
+layersacttype = c('relu', 'softmax'),
+layersdropoprob = c(0, 0),
+numiterations = 50,
+psopartpopsize = 50))
+## End(Not run)
+```
+
+## Paquete H2O  
+
+```{r }
+library(h2o)
+h2o.init(nthreads =-1, max_mem_size ='2g', ip ="127.0.0.1", port =50001)
+h2o.init()
+data=iris
+x = setdiff(names(data), 'Species')
+y= "Species"
+data[, y] <- as.factor(data[, y])
+data_h2o=as.h2o(data)
+aml =h2o.automl(x = x, y = y,
+ training_frame = data_h2o,
+max_models = 20,
+ seed = 1)
+pred = h2o.predict(aml,data_h2o)
+```
+
+```{r}
+pred
+```
+
+### Ejercicio de prostata
+
+```{r}
+# library(readxl)
+# data=Prostate_Cancer
+# x = setdiff(names(data), c('id','diagnosis_result'))
+# y= "diagnosis_result"
+# data[, y] <- as.factor(data[, y])
+# data_h2o=as.h2o(data)
+# aml =h2o.automl(x = x, y = y,training_frame = data_h2o,
+#                 max_models = 20,seed = 1)
+# pred = h2o.predict(aml,data_h2o)
+```
+
+
+## Algoritmos no supervisados  
+
+### K Means  
+
+```{r }
+# install.packages("ClusterR")
+library(ClusterR)
+iris_scale=scale(iris[,1:4])
+opt_km = Optimal_Clusters_KMeans(iris_scale, max_clusters = 10, criterion = "distortion_fK", plot_clusters = TRUE)
+```
+
+```{r}
+km = KMeans_rcpp(iris_scale, clusters = 3, num_init = 5, max_iters = 100, initializer = 'kmeans++')
+
+pr = predict_KMeans(iris_scale, km$centroids, threads = 1)
+
+plot(iris[,1:4],col=km$clusters)
+```
+
+
+### Clase del miercoles
+
+
+```{r}
+library(ClusterR)
+iris_scale=scale(iris[,1:4])
+km_mb = MiniBatchKmeans(iris_scale, clusters = 3, batch_size = 20, num_init = 5, max_iters = 100, 
+                        init_fraction = 0.2, initializer = 'kmeans++', early_stop_iter = 10,
+                        verbose = F)
+pr_mb = predict_MBatchKMeans(iris_scale, km_mb$centroids)
+getcent_mb = km_mb$centroids
+new_im_mb = getcent_mb[pr_mb, ]
+plot(iris[,1:4],col=pr_mb)
+```
+
+
+### kMeans
+```{r}
+library(OpenImageR)
+library(ClusterR)
+getwd()
+path = 'elephant.jpeg'   #ruta depende del la ubicación
+
+im = readImage(path)
+```
+
+```{r}
+imageShow(im) 
+```
+
+```{r}
+im_resize = resizeImage(im, 75, 75, method = 'bilinear')            
+imageShow(im_resize) 
+```
+
+```{r}
+#vectorize RGB
+imRGB = apply(im_resize, 3, as.vector)
+opt = Optimal_Clusters_KMeans(imRGB, max_clusters = 10, plot_clusters = T, verbose = F, 
+                              criterion = 'distortion_fK', fK_threshold = 0.85)
+```
+
+```{r}
+km_init = KMeans_rcpp(imRGB, clusters = 5, num_init = 5, max_iters = 100,  initializer = 'kmeans++', verbose = F)
+getcent_init = km_init$centroids
+getclust_init = km_init$clusters
+new_im_init = getcent_init[getclust_init, ]  # each observation is associated with the nearby centroid
+dim(new_im_init) = c(nrow(im_resize), ncol(im_resize), 3)     # back-convertion to a 3-dimensional image
+imageShow(new_im_init)
+```
+
+
+```{r}
+library(OpenImageR)
+library(ClusterR)
+path = 'elephant.jpeg'  #ruta depende del la ubicación
+im = readImage(path)
+imageShow(im) 
+im_resize = resizeImage(im, 75, 75, method = 'bilinear')            
+imageShow(im_resize)   
+#vectorize RGB
+imRGB = apply(im_resize, 3, as.vector)
+opt_gmm = Optimal_Clusters_GMM(imRGB, 10, criterion = "BIC", plot_data = TRUE)
+gmm_init = GMM(imRGB, 8, "eucl_dist", "random_subset", 10, 10)
+pr = predict_GMM(imRGB, gmm_init$centroids, gmm_init$covariance_matrices, gmm_init$weights)
+getcent_init = gmm_init$centroids
+getclust_init = pr$cluster_labels+1    #los labels comienzan con cero por eso se suma 1
+new_im_init = getcent_init[getclust_init, ]  # each observation is associated with the nearby centroid
+dim(new_im_init) = c(nrow(im_resize), ncol(im_resize), 3)     # back-convertion to a 3-dimensional image
+imageShow(new_im_init)
+```
+
+
+```{r}
+# Sin usar resize
+library(OpenImageR)
+library(ClusterR)
+path = 'elephant.jpeg' #ruta depende del la ubicación
+im = readImage(path)
+imageShow(im)
+imRGB = apply(im, 3, as.vector)
+opt_gmm = Optimal_Clusters_GMM(imRGB, 10, criterion = "BIC", plot_data = TRUE)
+
+gmm_init = GMM(imRGB, 8, "eucl_dist", "random_subset", 10, 10)
+pr = predict_GMM(imRGB, gmm_init$centroids, gmm_init$covariance_matrices, gmm_init$weights)
+getcent_init = gmm_init$centroids
+getclust_init = pr$cluster_labels+1 #los labels comienzan con cero por eso se suma 1
+new_im_init = getcent_init[getclust_init, ] # each observation is associated with the nearby centroid
+dim(new_im_init) = c(nrow(im), ncol(im), 3) # back-convertion to a 3-dimensional image
+imageShow(new_im_init)
+```
+
+
+
+
+```{r}
+#MiniBatchKMeans
+library(OpenImageR)
+library(ClusterR)
+getwd()
+path = 'elephant.jpeg'     #ruta depende del la ubicación
+im = readImage(path)
+imageShow(im) 
+im_resize = resizeImage(im, 75, 75, method = 'bilinear')            
+imageShow(im_resize)   
+#vectorize RGB
+imRGB = apply(im_resize, 3, as.vector)
+km_mb = MiniBatchKmeans(imRGB, clusters = 5, batch_size = 20, num_init = 5, max_iters = 100, 
+                        init_fraction = 0.2, initializer = 'kmeans++', early_stop_iter = 10, verbose = F)
+pr_mb = predict_MBatchKMeans(imRGB, km_mb$centroids)
+getcent_mb = km_mb$centroids
+new_im_mb = getcent_mb[pr_mb, ]
+dim(new_im_mb) = c(nrow(im_resize), ncol(im_resize), 3) 
+imageShow(new_im_mb)
+```
+
+```{r}
+# Ejercicio foto
+library(OpenImageR)
+library(ClusterR)
+path = 'Carlos.jpeg'  #ruta depende del la ubicación
+im = readImage(path)
+imageShow(im) 
+```
+
+```{r}
+im_resize = resizeImage(im, 75, 75, method = 'bilinear')            
+imageShow(im_resize) 
+```
+
+
+```{r}
+#vectorize RGB
+imRGB = apply(im_resize, 3, as.vector)
+opt_gmm = Optimal_Clusters_GMM(imRGB, 10, criterion = "BIC", plot_data = TRUE)
+gmm_init = GMM(imRGB, 10, "eucl_dist", "random_subset", 10, 10)
+pr = predict_GMM(imRGB, gmm_init$centroids, gmm_init$covariance_matrices, gmm_init$weights)
+getcent_init = gmm_init$centroids
+getclust_init = pr$cluster_labels+1    #los labels comienzan con cero por eso se suma 1
+new_im_init = getcent_init[getclust_init, ]  # each observation is associated with the nearby centroid
+dim(new_im_init) = c(nrow(im_resize), ncol(im_resize), 3)     # back-convertion to a 3-dimensional image
+```
+
+```{r}
+imageShow(new_im_init)
+```
+
+
+```{r}
+# Ejercicio linkedin
+library(ClusterR)
+library(fastDummies)
+library(readxl)
+base_ejer <- read_excel("D:/Maestría Estadística Aplicada/14 Aprendizaje estadístico y Data Minig/Unidad 3/Datos del curso Lin.xlsx")
+base_scale=scale(base_ejer[,4:7])
+uu = data.frame(base_ejer$Género)
+dm = dummy_cols(uu)[,-1]
+vv = data.frame(base_ejer$Edad)
+dv = dummy_cols(vv)[,-1]
+bas=data.frame(base_scale,dm,dv)
+base_scale1=scale(bas)
+opt_km = Optimal_Clusters_KMeans(base_scale1, max_clusters = 10, criterion = "distortion_fK", plot_clusters = TRUE)
+
+km = KMeans_rcpp(base_scale, clusters =2, num_init = 5, max_iters = 100, initializer = 'kmeans++')
+
+pr = predict_KMeans(iris_scale, km$centroids, threads = 1)
+
+plot(base_ejer[,4:7],col=km$clusters)
+```
+
+
+# Redes sociales, el protocolo oauth y text mining
+
+
+## Web scrapping
+```{r}
+library(rvest)
+# webpage <- read_html(url)
+
+lego_movie <- read_html("http://www.imdb.com/title/tt1490017/")
+# lego_movie
+a=html_nodes(lego_movie,"strong span")
+c=html_nodes(lego_movie,"div div div div div span a ")
+
+b=html_text(a)
+as.numeric(b)
+
+# Credenciales
+# 1023746577946-o8enfa5afsl0e9620oqt81jhbs0e9hk5.apps.googleusercontent.com
+# Pasword
+# Up7HVTrmgdQP90Yxapm9z5zY
+# genre_data_html <- html_nodes(webpage,'.genre')
+# genre_data <- html_text(genre_data_html)
+```
+
